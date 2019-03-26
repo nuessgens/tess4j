@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>net.sourceforge.tess4j</groupId>
     <artifactId>tess4j</artifactId>
-    <version>4.4.0-SNAPSHOT</version>
+    <version>4.4.0-light-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>Tess4J - Tesseract for Java</name>
@@ -27,9 +28,9 @@
     </description>
 
     <parent>
-        <groupId>org.sonatype.oss</groupId>
-        <artifactId>oss-parent</artifactId>
-        <version>9</version>
+        <groupId>com.nuessgens</groupId>
+        <artifactId>pom-base</artifactId>
+        <version>6</version>
     </parent>
 
     <licenses>
@@ -84,17 +85,23 @@
     </properties>
 
     <distributionManagement>
-      <snapshotRepository>
-        <id>nexus-snapshots</id>
-        <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-      </snapshotRepository>
-      <repository>
-        <id>ossrh</id>
-        <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-      </repository>
+        <snapshotRepository>
+            <id>nexus-snapshots</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+        <repository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
     </distributionManagement>
-  
+
     <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>false</filtering>
+            </resource>
+        </resources>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -118,7 +125,18 @@
                         </offlineLink>
                     </offlineLinks>
                 </configuration>
-            </plugin>            
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                        <configuration>
+                            <doclint>none</doclint>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-resources-plugin</artifactId>
@@ -166,10 +184,10 @@
                 <version>1.6.8</version>
                 <extensions>true</extensions>
                 <configuration>
-                   <serverId>nexus</serverId>
-                   <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                    <serverId>nexus</serverId>
+                    <nexusUrl>https://oss.sonatype.org/</nexusUrl>
                 </configuration>
-             </plugin>
+            </plugin>
         </plugins>
     </build>
 
