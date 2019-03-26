@@ -18,10 +18,10 @@ package net.sourceforge.tess4j.util;
 import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
-import java.awt.image.WritableRaster;
 import java.awt.image.DataBuffer;
 import java.awt.image.DataBufferByte;
 import java.awt.image.RenderedImage;
+import java.awt.image.WritableRaster;
 import java.io.File;
 import java.io.IOException;
 import java.nio.Buffer;
@@ -33,6 +33,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.ServiceLoader;
 
 import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
@@ -46,6 +47,8 @@ import javax.imageio.metadata.IIOMetadataNode;
 import javax.imageio.stream.ImageInputStream;
 import javax.imageio.stream.ImageOutputStream;
 
+import org.apache.commons.io.FilenameUtils;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.NodeList;
 
 import com.github.jaiimageio.plugins.tiff.BaselineTIFFTagSet;
@@ -55,7 +58,8 @@ import com.github.jaiimageio.plugins.tiff.TIFFImageWriteParam;
 import com.github.jaiimageio.plugins.tiff.TIFFTag;
 import com.recognition.software.jdeskew.ImageDeskew;
 import com.recognition.software.jdeskew.ImageUtil;
-import org.apache.commons.io.FilenameUtils;
+
+import net.sourceforge.tess4j.spi.ImageFileConverter;
 
 public class ImageIOHelper {
 
@@ -64,7 +68,7 @@ public class ImageIOHelper {
     static final String TIFF_FORMAT = "tiff";
     public static final String JAI_IMAGE_WRITER_MESSAGE = "Need to install JAI Image I/O package.\nhttps://github.com/jai-imageio/jai-imageio-core";
     public static final String JAI_IMAGE_READER_MESSAGE = "Unsupported image format. May need to install JAI Image I/O package.\nhttps://github.com/jai-imageio/jai-imageio-core";
-
+    private static final org.slf4j.Logger logger = LoggerFactory.getLogger(new LoggHelper().toString());
     /**
      * Creates a list of TIFF image files from an image file. It basically
      * converts images of other formats to TIFF format, or a multi-page TIFF
@@ -93,7 +97,7 @@ public class ImageIOHelper {
      * @throws IOException
      */
     public static List<File> createTiffFiles(File imageFile, int index, boolean preserve) throws IOException {
-        List<File> tiffFiles = new ArrayList<File>();
+        List<File> tiffFiles = new ArrayList<>();
 
         String imageFormat = getImageFileFormat(imageFile);
 
@@ -164,7 +168,7 @@ public class ImageIOHelper {
     }
 
     public static List<File> createTiffFiles(List<IIOImage> imageList, int index, int dpiX, int dpiY) throws IOException {
-        List<File> tiffFiles = new ArrayList<File>();
+        List<File> tiffFiles = new ArrayList<>();
 
         //Set up the writeParam
         TIFFImageWriteParam tiffWriteParam = new TIFFImageWriteParam(Locale.US);
@@ -322,11 +326,21 @@ public class ImageIOHelper {
      * @throws IOException
      */
     public static File getImageFile(File inputFile) throws IOException {
-        File imageFile = inputFile;
-        if (inputFile.getName().toLowerCase().endsWith(".pdf")) {
-            imageFile = PdfUtilities.convertPdf2Tiff(inputFile);
+        String fileExt = FilenameUtils.getExtension(inputFile.getName());
+        ServiceLoader<ImageFileConverter> services = ServiceLoader.load(ImageFileConverter.class);
+        Iterator<ImageFileConverter> it = services.iterator();
+        while (it.hasNext()) {
+            ImageFileConverter next = it.next();
+            if (!next.supportedFileExtensions().contains(fileExt)) {
+                continue;
+            }
+            logger.debug("Using coverter {} for file-extension {}.", next, fileExt);
+            File imageFile = next.convertToImage(inputFile);
+            if (imageFile != null) {
+                return imageFile;
+            }
         }
-        return imageFile;
+        return inputFile;// no converter found or n
     }
 
     /**
@@ -342,7 +356,7 @@ public class ImageIOHelper {
         // convert to TIFF if PDF
         File imageFile = getImageFile(inputFile);
 
-        List<BufferedImage> biList = new ArrayList<BufferedImage>();
+        List<BufferedImage> biList = new ArrayList<>();
         String imageFormat = getImageFileFormat(imageFile);
 
         Iterator<ImageReader> readers = ImageIO.getImageReadersByFormatName(imageFormat);
@@ -387,7 +401,7 @@ public class ImageIOHelper {
         // convert to TIFF if PDF
         File imageFile = getImageFile(inputFile);
 
-        List<IIOImage> iioImageList = new ArrayList<IIOImage>();
+        List<IIOImage> iioImageList = new ArrayList<>();
         String imageFormat = getImageFileFormat(imageFile);
 
         Iterator<ImageReader> readers = ImageIO.getImageReadersByFormatName(imageFormat);
@@ -402,7 +416,7 @@ public class ImageIOHelper {
             int imageTotal = reader.getNumImages(true);
 
             for (int i = 0; i < imageTotal; i++) {
-//                IIOImage oimage = new IIOImage(reader.read(i), null, reader.getImageMetadata(i));
+                //                IIOImage oimage = new IIOImage(reader.read(i), null, reader.getImageMetadata(i));
                 IIOImage oimage = reader.readAll(i, reader.getDefaultReadParam());
                 iioImageList.add(oimage);
             }
@@ -429,7 +443,7 @@ public class ImageIOHelper {
      * @throws IOException
      */
     public static List<IIOImage> getIIOImageList(BufferedImage bi) throws IOException {
-        List<IIOImage> iioImageList = new ArrayList<IIOImage>();
+        List<IIOImage> iioImageList = new ArrayList<>();
         IIOImage oimage = new IIOImage(bi, null, null);
         iioImageList.add(oimage);
         return iioImageList;
@@ -456,7 +470,7 @@ public class ImageIOHelper {
 
         //Set up the writeParam
         TIFFImageWriteParam tiffWriteParam = new TIFFImageWriteParam(Locale.US);
-//        tiffWriteParam.setCompressionMode(ImageWriteParam.MODE_DISABLED); // commented out to preserve original sizes
+        //        tiffWriteParam.setCompressionMode(ImageWriteParam.MODE_DISABLED); // commented out to preserve original sizes
 
         //Get the stream metadata
         IIOMetadata streamMetadata = writer.getDefaultStreamMetadata(tiffWriteParam);
@@ -515,7 +529,7 @@ public class ImageIOHelper {
      * @throws IOException
      */
     public static void mergeTiff(BufferedImage[] inputImages, File outputTiff, String compressionType) throws IOException {
-        List<IIOImage> imageList = new ArrayList<IIOImage>();
+        List<IIOImage> imageList = new ArrayList<>();
 
         for (BufferedImage inputImage : inputImages) {
             imageList.add(new IIOImage(inputImage, null, null));
@@ -557,7 +571,7 @@ public class ImageIOHelper {
 
         //Set up the writeParam
         TIFFImageWriteParam tiffWriteParam = new TIFFImageWriteParam(Locale.US);
-//        tiffWriteParam.setCompressionMode(ImageWriteParam.MODE_DISABLED); // comment out to preserve original sizes
+        //        tiffWriteParam.setCompressionMode(ImageWriteParam.MODE_DISABLED); // comment out to preserve original sizes
         if (compressionType != null) {
             tiffWriteParam.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
             tiffWriteParam.setCompressionType(compressionType);
@@ -627,7 +641,7 @@ public class ImageIOHelper {
      * @return a map of meta data
      */
     public static Map<String, String> readImageData(IIOImage oimage) {
-        Map<String, String> dict = new HashMap<String, String>();
+        Map<String, String> dict = new HashMap<>();
 
         IIOMetadata imageMetadata = oimage.getMetadata();
         if (imageMetadata != null) {
@@ -636,7 +650,7 @@ public class ImageIOHelper {
             int dpiX;
             if (nodes.getLength() > 0) {
                 float dpcWidth = Float.parseFloat(nodes.item(0).getAttributes().item(0).getNodeValue());
-                dpiX = (int) Math.round(25.4f / dpcWidth);
+                dpiX = Math.round(25.4f / dpcWidth);
             } else {
                 dpiX = Toolkit.getDefaultToolkit().getScreenResolution();
             }
@@ -646,7 +660,7 @@ public class ImageIOHelper {
             int dpiY;
             if (nodes.getLength() > 0) {
                 float dpcHeight = Float.parseFloat(nodes.item(0).getAttributes().item(0).getNodeValue());
-                dpiY = (int) Math.round(25.4f / dpcHeight);
+                dpiY = Math.round(25.4f / dpcHeight);
             } else {
                 dpiY = Toolkit.getDefaultToolkit().getScreenResolution();
             }

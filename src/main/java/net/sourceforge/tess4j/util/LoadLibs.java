@@ -29,8 +29,6 @@ import java.util.jar.JarFile;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.jboss.vfs.VFS;
-import org.jboss.vfs.VirtualFile;
 import org.slf4j.LoggerFactory;
 
 import com.sun.jna.Native;
@@ -62,7 +60,7 @@ public class LoadLibs {
     static {
         System.setProperty("jna.encoding", "UTF8");
         String model = System.getProperty("sun.arch.data.model",
-                                          System.getProperty("com.ibm.vm.bitmode"));
+                System.getProperty("com.ibm.vm.bitmode"));
         String resourcePrefix = "32".equals(model) ? "win32-x86" : "win32-x86-64";
         File targetTempFolder = extractTessResources(resourcePrefix);
         if (targetTempFolder != null && targetTempFolder.exists()) {
@@ -82,7 +80,7 @@ public class LoadLibs {
      * <code>Native.loadLibrary()</code>.
      */
     public static TessAPI getTessAPIInstance() {
-        return (TessAPI) Native.loadLibrary(getTesseractLibName(), TessAPI.class);
+        return Native.loadLibrary(getTesseractLibName(), TessAPI.class);
     }
 
     /**
@@ -138,9 +136,6 @@ public class LoadLibs {
          */
         if (urlConnection instanceof JarURLConnection) {
             copyJarResourceToPath((JarURLConnection) urlConnection, targetPath);
-        } else if (VFS_PROTOCOL.equals(resourceUrl.getProtocol())) {
-            VirtualFile virtualFileOrFolder = VFS.getChild(resourceUrl.toURI());
-            copyFromWarToFolder(virtualFileOrFolder, targetPath);
         } else {
             File file = new File(resourceUrl.getPath());
             if (file.isDirectory()) {
@@ -206,31 +201,4 @@ public class LoadLibs {
         }
     }
 
-    /**
-     * Copies resources from WAR to target folder.
-     *
-     * @param virtualFileOrFolder
-     * @param targetFolder
-     * @throws IOException
-     */
-    static void copyFromWarToFolder(VirtualFile virtualFileOrFolder, File targetFolder) throws IOException {
-        if (virtualFileOrFolder.isDirectory() && !virtualFileOrFolder.getName().contains(".")) {
-            if (targetFolder.getName().equalsIgnoreCase(virtualFileOrFolder.getName())) {
-                for (VirtualFile innerFileOrFolder : virtualFileOrFolder.getChildren()) {
-                    copyFromWarToFolder(innerFileOrFolder, targetFolder);
-                }
-            } else {
-                File innerTargetFolder = new File(targetFolder, virtualFileOrFolder.getName());
-                innerTargetFolder.mkdir();
-                for (VirtualFile innerFileOrFolder : virtualFileOrFolder.getChildren()) {
-                    copyFromWarToFolder(innerFileOrFolder, innerTargetFolder);
-                }
-            }
-        } else {
-            File targetFile = new File(targetFolder, virtualFileOrFolder.getName());
-            if (!targetFile.exists() || targetFile.length() != virtualFileOrFolder.getSize()) {
-                FileUtils.copyURLToFile(virtualFileOrFolder.asFileURL(), targetFile);
-            }
-        }
-    }
 }

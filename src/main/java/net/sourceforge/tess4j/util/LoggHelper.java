@@ -20,7 +20,7 @@ package net.sourceforge.tess4j.util;
  *
  * @author O.J. Sousa Rodrigues
  */
-public class LoggHelper extends Exception {
+public class LoggHelper {
     private static class MySecMgr extends SecurityManager {
         private static final MySecMgr INSTANCE = new MySecMgr();
 
