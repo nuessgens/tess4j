@@ -21,14 +21,19 @@ package net.sourceforge.tess4j.util;
  * @author O.J. Sousa Rodrigues
  */
 public class LoggHelper extends Exception {
+    private static class MySecMgr extends SecurityManager {
+        private static final MySecMgr INSTANCE = new MySecMgr();
+
+        @Override
+        // increase visibility of getClassContext
+        public Class<?>[] getClassContext() {
+            return super.getClassContext();
+        }
+    }
 
     @Override
     public String toString() {
-        LoggerConfig.INSTANCE.loadConfig();
-
-        StackTraceElement[] sTrace = this.getStackTrace();
-        String className = sTrace[0].getClassName();
-
-        return className;
+        Class<?> callingClass = MySecMgr.INSTANCE.getClassContext()[2];
+        return callingClass.getName();
     }
 }
