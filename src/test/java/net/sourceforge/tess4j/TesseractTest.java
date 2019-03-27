@@ -15,36 +15,39 @@
  */
 package net.sourceforge.tess4j;
 
-import java.awt.Rectangle;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import java.awt.Graphics2D;
+import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Map;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import javax.imageio.ImageIO;
 
-import net.sourceforge.tess4j.util.ImageHelper;
-import net.sourceforge.tess4j.util.LoggHelper;
-import net.sourceforge.tess4j.util.Utils;
-
-import net.sourceforge.tess4j.ITesseract.RenderedFormat;
-import net.sourceforge.tess4j.ITessAPI.TessPageIteratorLevel;
-
-import com.recognition.software.jdeskew.ImageDeskew;
-
-import static org.junit.Assert.*;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.recognition.software.jdeskew.ImageDeskew;
+
+import net.sourceforge.tess4j.ITessAPI.TessPageIteratorLevel;
+import net.sourceforge.tess4j.ITesseract.RenderedFormat;
+import net.sourceforge.tess4j.util.ImageHelper;
+import net.sourceforge.tess4j.util.LoggHelper;
+import net.sourceforge.tess4j.util.Utils;
 
 public class TesseractTest {
 
@@ -52,7 +55,7 @@ public class TesseractTest {
     static final double MINIMUM_DESKEW_THRESHOLD = 0.05d;
     ITesseract instance;
 
-    private final String datapath = "src/main/resources/tessdata";
+    private final String datapath = "src/test/resources/tessdata";
     private final String testResourcesDataPath = "src/test/resources/test-data";
 
     @BeforeClass
@@ -150,7 +153,7 @@ public class TesseractTest {
      */
     @Test
     public void testDoOCR_PDF() throws Exception {
-        logger.info("doOCR on a PDF document");       
+        logger.info("doOCR on a PDF document");
         File inputFile = new File(this.testResourcesDataPath, "eurotext.pdf");
         String expResult = "The (quick) [brown] {fox} jumps!\nOver the $43,456.78 <lazy> #90 dog";
         try {
@@ -246,7 +249,7 @@ public class TesseractTest {
         File imageFile2 = new File(this.testResourcesDataPath, "eurotext.png");
         String outputbase1 = "target/test-classes/test-results/docrenderer-1";
         String outputbase2 = "target/test-classes/test-results/docrenderer-2";
-        List<RenderedFormat> formats = new ArrayList<RenderedFormat>(Arrays.asList(RenderedFormat.HOCR, RenderedFormat.PDF, RenderedFormat.TEXT));
+        List<RenderedFormat> formats = new ArrayList<>(Arrays.asList(RenderedFormat.HOCR, RenderedFormat.PDF, RenderedFormat.TEXT));
         instance.createDocuments(new String[]{imageFile1.getPath(), imageFile2.getPath()}, new String[]{outputbase1, outputbase2}, formats);
         assertTrue(new File(outputbase1 + ".pdf").exists());
     }
@@ -274,7 +277,7 @@ public class TesseractTest {
             logger.info(word.toString());
         }
 
-        List<String> text = new ArrayList<String>();
+        List<String> text = new ArrayList<>();
         for (Word word : result.subList(0, expResults.length)) {
             text.add(word.getText().trim());
         }
@@ -315,7 +318,7 @@ public class TesseractTest {
         File imageFile2 = new File(this.testResourcesDataPath, "eurotext.png");
         String outputbase1 = "target/test-classes/test-results/docrenderer-3";
         String outputbase2 = "target/test-classes/test-results/docrenderer-4";
-        List<RenderedFormat> formats = new ArrayList<RenderedFormat>(Arrays.asList(RenderedFormat.HOCR, RenderedFormat.PDF, RenderedFormat.TEXT));
+        List<RenderedFormat> formats = new ArrayList<>(Arrays.asList(RenderedFormat.HOCR, RenderedFormat.PDF, RenderedFormat.TEXT));
         List<OCRResult> results = instance.createDocumentsWithResults(new String[]{imageFile1.getPath(), imageFile2.getPath()}, new String[]{outputbase1, outputbase2}, formats, TessPageIteratorLevel.RIL_WORD);
         assertTrue(new File(outputbase1 + ".pdf").exists());
         assertEquals(2, results.size());

@@ -15,36 +15,38 @@
  */
 package net.sourceforge.tess4j;
 
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Arrays;
-import javax.imageio.ImageIO;
-
-import net.sourceforge.tess4j.util.ImageHelper;
-import net.sourceforge.tess4j.util.LoggHelper;
-import net.sourceforge.tess4j.util.Utils;
-
-import net.sourceforge.tess4j.ITesseract.RenderedFormat;
-import net.sourceforge.tess4j.ITessAPI.TessPageIteratorLevel;
-
-import com.recognition.software.jdeskew.ImageDeskew;
-import java.awt.Graphics2D;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-import static org.junit.Assert.*;
-import org.junit.Ignore;
+import javax.imageio.ImageIO;
+
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.recognition.software.jdeskew.ImageDeskew;
+
+import net.sourceforge.tess4j.ITessAPI.TessPageIteratorLevel;
+import net.sourceforge.tess4j.ITesseract.RenderedFormat;
+import net.sourceforge.tess4j.util.ImageHelper;
+import net.sourceforge.tess4j.util.LoggHelper;
+import net.sourceforge.tess4j.util.Utils;
 
 public class Tesseract1Test {
 
@@ -52,7 +54,7 @@ public class Tesseract1Test {
     static final double MINIMUM_DESKEW_THRESHOLD = 0.05d;
     ITesseract instance;
 
-    private final String datapath = "src/main/resources/tessdata";
+    private final String datapath = "src/test/resources/tessdata";
     private final String testResourcesDataPath = "src/test/resources/test-data";
 
     @BeforeClass
@@ -172,17 +174,17 @@ public class Tesseract1Test {
         Map<String, Integer> types = new HashMap<>();
         types.put("TYPE_INT_RGB", BufferedImage.TYPE_INT_RGB);
         types.put("TYPE_INT_ARGB", BufferedImage.TYPE_INT_ARGB);
-//        types.put("TYPE_INT_ARGB_PRE", BufferedImage.TYPE_INT_ARGB_PRE);
-//        types.put("TYPE_INT_BGR", BufferedImage.TYPE_INT_BGR);
-//        types.put("TYPE_3BYTE_BGR", BufferedImage.TYPE_3BYTE_BGR);
-//        types.put("TYPE_4BYTE_ABGR", BufferedImage.TYPE_4BYTE_ABGR);
-//        types.put("TYPE_4BYTE_ABGR_PRE", BufferedImage.TYPE_4BYTE_ABGR_PRE);
-//        types.put("TYPE_USHORT_565_RGB", BufferedImage.TYPE_USHORT_565_RGB);
-//        types.put("TYPE_USHORT_555_RGB", BufferedImage.TYPE_USHORT_555_RGB);
-//        types.put("TYPE_BYTE_GRAY", BufferedImage.TYPE_BYTE_GRAY);
-//        types.put("TYPE_USHORT_GRAY", BufferedImage.TYPE_USHORT_GRAY);
-//        types.put("TYPE_BYTE_BINARY", BufferedImage.TYPE_BYTE_BINARY);
-//        types.put("TYPE_BYTE_INDEXED", BufferedImage.TYPE_BYTE_INDEXED);
+        //        types.put("TYPE_INT_ARGB_PRE", BufferedImage.TYPE_INT_ARGB_PRE);
+        //        types.put("TYPE_INT_BGR", BufferedImage.TYPE_INT_BGR);
+        //        types.put("TYPE_3BYTE_BGR", BufferedImage.TYPE_3BYTE_BGR);
+        //        types.put("TYPE_4BYTE_ABGR", BufferedImage.TYPE_4BYTE_ABGR);
+        //        types.put("TYPE_4BYTE_ABGR_PRE", BufferedImage.TYPE_4BYTE_ABGR_PRE);
+        //        types.put("TYPE_USHORT_565_RGB", BufferedImage.TYPE_USHORT_565_RGB);
+        //        types.put("TYPE_USHORT_555_RGB", BufferedImage.TYPE_USHORT_555_RGB);
+        //        types.put("TYPE_BYTE_GRAY", BufferedImage.TYPE_BYTE_GRAY);
+        //        types.put("TYPE_USHORT_GRAY", BufferedImage.TYPE_USHORT_GRAY);
+        //        types.put("TYPE_BYTE_BINARY", BufferedImage.TYPE_BYTE_BINARY);
+        //        types.put("TYPE_BYTE_INDEXED", BufferedImage.TYPE_BYTE_INDEXED);
 
         for (Map.Entry<String, Integer> entry: types.entrySet()) {
             if (entry.getValue() == bi.getType()) {
@@ -240,7 +242,7 @@ public class Tesseract1Test {
         File imageFile2 = new File(this.testResourcesDataPath, "eurotext.png");
         String outputbase1 = "target/test-classes/test-results/docrenderer1-1";
         String outputbase2 = "target/test-classes/test-results/docrenderer1-2";
-        List<RenderedFormat> formats = new ArrayList<RenderedFormat>(Arrays.asList(RenderedFormat.HOCR, RenderedFormat.PDF, RenderedFormat.TEXT));
+        List<RenderedFormat> formats = new ArrayList<>(Arrays.asList(RenderedFormat.HOCR, RenderedFormat.PDF, RenderedFormat.TEXT));
         instance.createDocuments(new String[]{imageFile1.getPath(), imageFile2.getPath()}, new String[]{outputbase1, outputbase2}, formats);
         assertTrue(new File(outputbase1 + ".pdf").exists());
     }
@@ -268,7 +270,7 @@ public class Tesseract1Test {
             logger.info(word.toString());
         }
 
-        List<String> text = new ArrayList<String>();
+        List<String> text = new ArrayList<>();
         for (Word word : result.subList(0, expResults.length)) {
             text.add(word.getText().trim());
         }
@@ -309,12 +311,12 @@ public class Tesseract1Test {
         File imageFile2 = new File(this.testResourcesDataPath, "eurotext.png");
         String outputbase1 = "target/test-classes/test-results/docrenderer1-3";
         String outputbase2 = "target/test-classes/test-results/docrenderer1-4";
-        List<RenderedFormat> formats = new ArrayList<RenderedFormat>(Arrays.asList(RenderedFormat.HOCR, RenderedFormat.PDF, RenderedFormat.TEXT));
+        List<RenderedFormat> formats = new ArrayList<>(Arrays.asList(RenderedFormat.HOCR, RenderedFormat.PDF, RenderedFormat.TEXT));
         List<OCRResult> results = instance.createDocumentsWithResults(new String[]{imageFile1.getPath(), imageFile2.getPath()}, new String[]{outputbase1, outputbase2}, formats, TessPageIteratorLevel.RIL_WORD);
         assertTrue(new File(outputbase1 + ".pdf").exists());
         assertEquals(2, results.size());
         // Not work on Linux because unable to load pdf.ttf
-//        assertTrue(results.get(0).getConfidence() > 0);
-//        assertEquals(66, results.get(0).getWords().size());
+        //        assertTrue(results.get(0).getConfidence() > 0);
+        //        assertEquals(66, results.get(0).getWords().size());
     }
 }

@@ -15,7 +15,12 @@
  */
 package net.sourceforge.tess4j;
 
+import static net.sourceforge.lept4j.ILeptonica.L_CLONE;
+import static net.sourceforge.tess4j.ITessAPI.FALSE;
+import static net.sourceforge.tess4j.ITessAPI.TRUE;
 import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
@@ -29,42 +34,45 @@ import java.util.Arrays;
 
 import javax.imageio.ImageIO;
 
-import net.sourceforge.tess4j.util.LoggHelper;
-import net.sourceforge.tess4j.util.Utils;
-import net.sourceforge.tess4j.util.ImageIOHelper;
-
-import com.ochafik.lang.jnaerator.runtime.NativeSize;
-import com.sun.jna.NativeLong;
-
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
-import com.sun.jna.Pointer;
-import com.sun.jna.StringArray;
-import com.sun.jna.ptr.PointerByReference;
-import net.sourceforge.lept4j.Box;
-import net.sourceforge.lept4j.Boxa;
-import static net.sourceforge.lept4j.ILeptonica.L_CLONE;
-import net.sourceforge.lept4j.Leptonica1;
-import net.sourceforge.lept4j.Pix;
-import net.sourceforge.lept4j.util.LeptUtils;
-
-import net.sourceforge.tess4j.ITessAPI.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static net.sourceforge.tess4j.ITessAPI.FALSE;
-import static net.sourceforge.tess4j.ITessAPI.TRUE;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import com.ochafik.lang.jnaerator.runtime.NativeSize;
+import com.sun.jna.NativeLong;
+import com.sun.jna.Pointer;
+import com.sun.jna.StringArray;
+import com.sun.jna.ptr.PointerByReference;
+
+import net.sourceforge.lept4j.Box;
+import net.sourceforge.lept4j.Boxa;
+import net.sourceforge.lept4j.Leptonica1;
+import net.sourceforge.lept4j.Pix;
+import net.sourceforge.lept4j.util.LeptUtils;
+import net.sourceforge.tess4j.ITessAPI.ETEXT_DESC;
+import net.sourceforge.tess4j.ITessAPI.TessBaseAPI;
+import net.sourceforge.tess4j.ITessAPI.TessChoiceIterator;
+import net.sourceforge.tess4j.ITessAPI.TessOcrEngineMode;
+import net.sourceforge.tess4j.ITessAPI.TessOrientation;
+import net.sourceforge.tess4j.ITessAPI.TessPageIterator;
+import net.sourceforge.tess4j.ITessAPI.TessPageIteratorLevel;
+import net.sourceforge.tess4j.ITessAPI.TessPageSegMode;
+import net.sourceforge.tess4j.ITessAPI.TessResultIterator;
+import net.sourceforge.tess4j.ITessAPI.TessResultRenderer;
+import net.sourceforge.tess4j.ITessAPI.TessTextlineOrder;
+import net.sourceforge.tess4j.ITessAPI.TessWritingDirection;
+import net.sourceforge.tess4j.util.ImageIOHelper;
+import net.sourceforge.tess4j.util.LoggHelper;
+import net.sourceforge.tess4j.util.Utils;
 
 public class TessAPI1Test {
 
     private static final Logger logger = LoggerFactory.getLogger(new LoggHelper().toString());
-    private final String datapath = "src/main/resources/tessdata";
+    private final String datapath = "src/test/resources/tessdata";
     private final String testResourcesDataPath = "src/test/resources/test-data";
     String language = "eng";
     String expOCRResult = "The (quick) [brown] {fox} jumps!\nOver the $43,456.78 <lazy> #90 dog";
@@ -181,7 +189,7 @@ public class TessAPI1Test {
         PointerByReference pixa = null;
         PointerByReference blockids = null;
         Boxa boxes = TessAPI1.TessBaseAPIGetComponentImages(handle, TessPageIteratorLevel.RIL_TEXTLINE, TRUE, pixa, blockids);
-//        boxes = TessAPI1.TessBaseAPIGetRegions(handle, pixa); // equivalent to TessPageIteratorLevel.RIL_BLOCK
+        //        boxes = TessAPI1.TessBaseAPIGetRegions(handle, pixa); // equivalent to TessPageIteratorLevel.RIL_BLOCK
         int boxCount = Leptonica1.boxaGetCount(boxes);
         for (int i = 0; i < boxCount; i++) {
             Box box = Leptonica1.boxaGetBox(boxes, i, L_CLONE);
@@ -358,7 +366,7 @@ public class TessAPI1Test {
         TessAPI1.TessDeleteText(utf8Text);
         assertTrue(result.contains("<div class='ocr_page'"));
     }
-    
+
     /**
      * Test of TessBaseAPIGetAltoText method, of class TessAPI.
      *
@@ -382,13 +390,13 @@ public class TessAPI1Test {
         String result = utf8Text.getString(0);
         TessAPI1.TessDeleteText(utf8Text);
         assertTrue(result.contains("<Page WIDTH=\"1024\" HEIGHT=\"800\" PHYSICAL_IMG_NR=\"0\" ID=\"page_0\">"));
-              
+
         // WordStr Box output
         utf8Text = TessAPI1.TessBaseAPIGetWordStrBoxText(handle, page_number);
         result = utf8Text.getString(0);
         TessAPI1.TessDeleteText(utf8Text);
         assertTrue(result.contains("WordStr"));
-        
+
         // TSV output
         utf8Text = TessAPI1.TessBaseAPIGetTsvText(handle, page_number);
         result = utf8Text.getString(0);
@@ -684,10 +692,10 @@ public class TessAPI1Test {
         TessAPI1.TessResultRendererInsert(renderer, TessAPI1.TessPDFRendererCreate(outputbase, dataPath, FALSE));
         int result = TessAPI1.TessBaseAPIProcessPages(handle, image, null, 0, renderer);
 
-//        if (result == FALSE) {
-//            logger.error("Error during processing.");
-//            return;
-//        }
+        //        if (result == FALSE) {
+        //            logger.error("Error during processing.");
+        //            return;
+        //        }
         while ((renderer = TessAPI1.TessResultRendererNext(renderer)) != null) {
             String ext = TessAPI1.TessResultRendererExtention(renderer).getString(0);
             logger.info(String.format("TessResultRendererExtention: %s\nTessResultRendererTitle: %s\nTessResultRendererImageNum: %d",
