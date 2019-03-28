@@ -15,27 +15,39 @@
  */
 package net.sourceforge.tess4j;
 
-import com.sun.jna.Pointer;
-import com.sun.jna.StringArray;
-import com.sun.jna.ptr.PointerByReference;
+import static net.sourceforge.lept4j.ILeptonica.L_CLONE;
+
 import java.awt.Rectangle;
-import java.awt.image.*;
-import java.io.*;
+import java.awt.image.BufferedImage;
+import java.awt.image.DataBuffer;
+import java.awt.image.DataBufferByte;
+import java.awt.image.RenderedImage;
+import java.io.File;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Properties;
+
 import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
+
+import org.slf4j.LoggerFactory;
+
+import com.sun.jna.Pointer;
+import com.sun.jna.StringArray;
+import com.sun.jna.ptr.PointerByReference;
+
 import net.sourceforge.lept4j.Box;
 import net.sourceforge.lept4j.Boxa;
-import static net.sourceforge.lept4j.ILeptonica.L_CLONE;
 import net.sourceforge.lept4j.Leptonica1;
-
 import net.sourceforge.tess4j.util.ImageIOHelper;
 import net.sourceforge.tess4j.util.LoggHelper;
-import org.slf4j.*;
 
 /**
  * An object layer on top of <code>TessAPI1</code>, provides character
@@ -61,7 +73,7 @@ public class Tesseract1 extends TessAPI1 implements ITesseract {
     private int psm = -1;
     private int ocrEngineMode = TessOcrEngineMode.OEM_DEFAULT;
     private final Properties prop = new Properties();
-    private final List<String> configList = new ArrayList<String>();
+    private final List<String> configList = new ArrayList<>();
     private TessBaseAPI handle;
 
     private static final org.slf4j.Logger logger = LoggerFactory.getLogger(new LoggHelper().toString());
@@ -497,71 +509,71 @@ public class Tesseract1 extends TessAPI1 implements ITesseract {
 
         for (RenderedFormat format : formats) {
             switch (format) {
-                case TEXT:
-                    if (renderer == null) {
-                        renderer = TessTextRendererCreate(outputbase);
-                    } else {
-                        TessResultRendererInsert(renderer, TessTextRendererCreate(outputbase));
-                    }
-                    break;
-                case HOCR:
-                    if (renderer == null) {
-                        renderer = TessHOcrRendererCreate(outputbase);
-                    } else {
-                        TessResultRendererInsert(renderer, TessHOcrRendererCreate(outputbase));
-                    }
-                    break;
-                case PDF:
-                    String dataPath = TessBaseAPIGetDatapath(handle);
-                    boolean textonly = String.valueOf(TRUE).equals(prop.getProperty("textonly_pdf"));
-                    if (renderer == null) {
-                        renderer = TessPDFRendererCreate(outputbase, dataPath, textonly ? TRUE : FALSE);
-                    } else {
-                        TessResultRendererInsert(renderer, TessPDFRendererCreate(outputbase, dataPath, textonly ? TRUE : FALSE));
-                    }
-                    break;
-                case BOX:
-                    if (renderer == null) {
-                        renderer = TessBoxTextRendererCreate(outputbase);
-                    } else {
-                        TessResultRendererInsert(renderer, TessBoxTextRendererCreate(outputbase));
-                    }
-                    break;
-                case UNLV:
-                    if (renderer == null) {
-                        renderer = TessUnlvRendererCreate(outputbase);
-                    } else {
-                        TessResultRendererInsert(renderer, TessUnlvRendererCreate(outputbase));
-                    }
-                    break;
-                case ALTO:
-                    if (renderer == null) {
-                        renderer = TessAltoRendererCreate(outputbase);
-                    } else {
-                        TessResultRendererInsert(renderer, TessAltoRendererCreate(outputbase));
-                    }
-                    break;
-                case TSV:
-                    if (renderer == null) {
-                        renderer = TessTsvRendererCreate(outputbase);
-                    } else {
-                        TessResultRendererInsert(renderer, TessTsvRendererCreate(outputbase));
-                    }
-                    break;
-                case LSTMBOX:
-                    if (renderer == null) {
-                        renderer = TessLSTMBoxRendererCreate(outputbase);
-                    } else {
-                        TessResultRendererInsert(renderer, TessLSTMBoxRendererCreate(outputbase));
-                    }
-                    break;
-                case WORDSTRBOX:
-                    if (renderer == null) {
-                        renderer = TessWordStrBoxRendererCreate(outputbase);
-                    } else {
-                        TessResultRendererInsert(renderer, TessWordStrBoxRendererCreate(outputbase));
-                    }
-                    break;
+            case TEXT:
+                if (renderer == null) {
+                    renderer = TessTextRendererCreate(outputbase);
+                } else {
+                    TessResultRendererInsert(renderer, TessTextRendererCreate(outputbase));
+                }
+                break;
+            case HOCR:
+                if (renderer == null) {
+                    renderer = TessHOcrRendererCreate(outputbase);
+                } else {
+                    TessResultRendererInsert(renderer, TessHOcrRendererCreate(outputbase));
+                }
+                break;
+            case PDF:
+                String dataPath = TessBaseAPIGetDatapath(handle);
+                boolean textonly = String.valueOf(TRUE).equals(prop.getProperty("textonly_pdf"));
+                if (renderer == null) {
+                    renderer = TessPDFRendererCreate(outputbase, dataPath, textonly ? TRUE : FALSE);
+                } else {
+                    TessResultRendererInsert(renderer, TessPDFRendererCreate(outputbase, dataPath, textonly ? TRUE : FALSE));
+                }
+                break;
+            case BOX:
+                if (renderer == null) {
+                    renderer = TessBoxTextRendererCreate(outputbase);
+                } else {
+                    TessResultRendererInsert(renderer, TessBoxTextRendererCreate(outputbase));
+                }
+                break;
+            case UNLV:
+                if (renderer == null) {
+                    renderer = TessUnlvRendererCreate(outputbase);
+                } else {
+                    TessResultRendererInsert(renderer, TessUnlvRendererCreate(outputbase));
+                }
+                break;
+            case ALTO:
+                if (renderer == null) {
+                    renderer = TessAltoRendererCreate(outputbase);
+                } else {
+                    TessResultRendererInsert(renderer, TessAltoRendererCreate(outputbase));
+                }
+                break;
+            case TSV:
+                if (renderer == null) {
+                    renderer = TessTsvRendererCreate(outputbase);
+                } else {
+                    TessResultRendererInsert(renderer, TessTsvRendererCreate(outputbase));
+                }
+                break;
+            case LSTMBOX:
+                if (renderer == null) {
+                    renderer = TessLSTMBoxRendererCreate(outputbase);
+                } else {
+                    TessResultRendererInsert(renderer, TessLSTMBoxRendererCreate(outputbase));
+                }
+                break;
+            case WORDSTRBOX:
+                if (renderer == null) {
+                    renderer = TessWordStrBoxRendererCreate(outputbase);
+                } else {
+                    TessResultRendererInsert(renderer, TessWordStrBoxRendererCreate(outputbase));
+                }
+                break;
             }
         }
 
@@ -637,9 +649,9 @@ public class Tesseract1 extends TessAPI1 implements ITesseract {
         TessBaseAPISetInputName(handle, filename); //for reading a UNLV zone file
         int result = TessBaseAPIProcessPages(handle, filename, null, 0, renderer);
 
-//        if (result == ITessAPI.FALSE) {
-//            throw new TesseractException("Error during processing page.");
-//        }
+        //        if (result == ITessAPI.FALSE) {
+        //            throw new TesseractException("Error during processing page.");
+        //        }
         return TessBaseAPIMeanTextConf(handle);
     }
 
@@ -657,7 +669,7 @@ public class Tesseract1 extends TessAPI1 implements ITesseract {
         setTessVariables();
 
         try {
-            List<Rectangle> list = new ArrayList<Rectangle>();
+            List<Rectangle> list = new ArrayList<>();
             setImage(bi, null);
 
             Boxa boxes = TessBaseAPIGetComponentImages(handle, pageIteratorLevel, TRUE, null, null);
@@ -699,7 +711,7 @@ public class Tesseract1 extends TessAPI1 implements ITesseract {
         this.init();
         this.setTessVariables();
 
-        List<Word> words = new ArrayList<Word>();
+        List<Word> words = new ArrayList<>();
 
         try {
             setImage(bi, null);
@@ -710,20 +722,7 @@ public class Tesseract1 extends TessAPI1 implements ITesseract {
             TessPageIteratorBegin(pi);
 
             do {
-                Pointer ptr = TessResultIteratorGetUTF8Text(ri, pageIteratorLevel);
-                String text = ptr.getString(0);
-                TessAPI1.TessDeleteText(ptr);
-                float confidence = TessResultIteratorConfidence(ri, pageIteratorLevel);
-                IntBuffer leftB = IntBuffer.allocate(1);
-                IntBuffer topB = IntBuffer.allocate(1);
-                IntBuffer rightB = IntBuffer.allocate(1);
-                IntBuffer bottomB = IntBuffer.allocate(1);
-                TessPageIteratorBoundingBox(pi, pageIteratorLevel, leftB, topB, rightB, bottomB);
-                int left = leftB.get();
-                int top = topB.get();
-                int right = rightB.get();
-                int bottom = bottomB.get();
-                Word word = new Word(text, confidence, new Rectangle(left, top, right - left, bottom - top));
+                Word word = toWord(pageIteratorLevel, ri, pi);
                 words.add(word);
             } while (TessPageIteratorNext(pi, pageIteratorLevel) == TRUE);
         } catch (Exception e) {
@@ -753,7 +752,7 @@ public class Tesseract1 extends TessAPI1 implements ITesseract {
         init();
         setTessVariables();
 
-        List<OCRResult> results = new ArrayList<OCRResult>();
+        List<OCRResult> results = new ArrayList<>();
 
         try {
             for (int i = 0; i < filenames.length; i++) {
@@ -766,7 +765,7 @@ public class Tesseract1 extends TessAPI1 implements ITesseract {
 
                     TessResultRenderer renderer = createRenderers(outputbases[i], formats);
                     int meanTextConfidence = createDocuments(imageFile.getPath(), renderer);
-                    List<Word> words = meanTextConfidence > 0 ? getRecognizedWords(pageIteratorLevel) : new ArrayList<Word>();
+                    List<Word> words = meanTextConfidence > 0 ? getRecognizedWords(pageIteratorLevel) : new ArrayList<>();
                     results.add(new OCRResult(meanTextConfidence, words));
                     TessDeleteResultRenderer(renderer);
                 } catch (Exception e) {
@@ -801,20 +800,7 @@ public class Tesseract1 extends TessAPI1 implements ITesseract {
             TessPageIteratorBegin(pi);
 
             do {
-                Pointer ptr = TessResultIteratorGetUTF8Text(ri, pageIteratorLevel);
-                String text = ptr.getString(0);
-                TessAPI1.TessDeleteText(ptr);
-                float confidence = TessResultIteratorConfidence(ri, pageIteratorLevel);
-                IntBuffer leftB = IntBuffer.allocate(1);
-                IntBuffer topB = IntBuffer.allocate(1);
-                IntBuffer rightB = IntBuffer.allocate(1);
-                IntBuffer bottomB = IntBuffer.allocate(1);
-                TessPageIteratorBoundingBox(pi, pageIteratorLevel, leftB, topB, rightB, bottomB);
-                int left = leftB.get();
-                int top = topB.get();
-                int right = rightB.get();
-                int bottom = bottomB.get();
-                Word word = new Word(text, confidence, new Rectangle(left, top, right - left, bottom - top));
+                Word word = toWord(pageIteratorLevel, ri, pi);
                 words.add(word);
             } while (TessPageIteratorNext(pi, pageIteratorLevel) == TRUE);
         } catch (Exception e) {
@@ -822,6 +808,47 @@ public class Tesseract1 extends TessAPI1 implements ITesseract {
         }
 
         return words;
+    }
+
+    private static Word toWord(int pageIteratorLevel, TessResultIterator ri, TessPageIterator pi) {
+        Pointer ptr = TessAPI1.TessResultIteratorGetUTF8Text(ri, pageIteratorLevel);
+        String text = ptr.getString(0);
+        TessAPI1.TessDeleteText(ptr);
+        float confidence = TessAPI1.TessResultIteratorConfidence(ri, pageIteratorLevel);
+        IntBuffer leftB = IntBuffer.allocate(1);
+        IntBuffer topB = IntBuffer.allocate(1);
+        IntBuffer rightB = IntBuffer.allocate(1);
+        IntBuffer bottomB = IntBuffer.allocate(1);
+        TessAPI1.TessPageIteratorBoundingBox(pi, pageIteratorLevel, leftB, topB, rightB, bottomB);
+        int left = leftB.get();
+        int top = topB.get();
+        int right = rightB.get();
+        int bottom = bottomB.get();
+        Rectangle boundingBox = new Rectangle(left, top, right - left, bottom - top);
+
+        IntBuffer boldB = IntBuffer.allocate(1);
+        IntBuffer italicB = IntBuffer.allocate(1);
+        IntBuffer underlinedB = IntBuffer.allocate(1);
+        IntBuffer monospaceB = IntBuffer.allocate(1);
+        IntBuffer serifB = IntBuffer.allocate(1);
+        IntBuffer smallcapsB = IntBuffer.allocate(1);
+        IntBuffer pointSizeB = IntBuffer.allocate(1);
+        IntBuffer fontIdB = IntBuffer.allocate(1);
+        String fontName = TessAPI1.TessResultIteratorWordFontAttributes(ri, boldB, italicB, underlinedB,
+                monospaceB, serifB, smallcapsB, pointSizeB, fontIdB);
+        boolean bold = boldB.get() == TRUE;
+        boolean italic = italicB.get() == TRUE;
+        boolean underlined = underlinedB.get() == TRUE;
+        boolean monospace = monospaceB.get() == TRUE;
+        boolean serif = serifB.get() == TRUE;
+        boolean smallcaps = smallcapsB.get() == TRUE;
+        int pointSize = pointSizeB.get();
+        // int fontId = fontIdB.get(); ??
+
+        FontAttributes fa = new FontAttributes(fontName, pointSize, bold, italic, underlined, monospace, serif, smallcaps);
+
+        Word word = new Word(text, confidence, boundingBox, fa);
+        return word;
     }
 
     /**

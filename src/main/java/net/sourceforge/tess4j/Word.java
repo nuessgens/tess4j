@@ -26,17 +26,22 @@ public class Word {
     private final float confidence;
     private final Rectangle rect;
 
+    private final FontAttributes fontAttributes;
+
+
     /**
      * Constructor.
-     * 
+     *
      * @param text
      * @param confidence
-     * @param boundingBox 
+     * @param boundingBox
+     * @param fontAttributes
      */
-    public Word(String text, float confidence, Rectangle boundingBox) {
+    public Word(String text, float confidence, Rectangle boundingBox, FontAttributes fontAttributes) {
         this.text = text;
         this.confidence = confidence;
         this.rect = boundingBox;
+        this.fontAttributes = fontAttributes;
     }
 
     /**
@@ -58,6 +63,10 @@ public class Word {
      */
     public Rectangle getBoundingBox() {
         return rect;
+    }
+
+    public FontAttributes getFontAttributes() {
+        return fontAttributes;
     }
 
     @Override
