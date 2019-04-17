@@ -9,13 +9,13 @@ public final class OsLocaleUtil {
     private static String restoreLocale;
 
     public static void initLocale() {
-        restoreLocale = CLibrary.INSTANCE.setlocale(CLibrary.LC_CTYPE, null);
-        CLibrary.INSTANCE.setlocale(CLibrary.LC_CTYPE, LOCALE);
+        restoreLocale = CLibrary.INSTANCE.setlocale(CLibrary.LC_ALL, null);
+        CLibrary.INSTANCE.setlocale(CLibrary.LC_ALL, LOCALE);
     }
 
     public static void restoreLocale() {
         if (restoreLocale != null) {
-            CLibrary.INSTANCE.setlocale(CLibrary.LC_CTYPE, restoreLocale);
+            CLibrary.INSTANCE.setlocale(CLibrary.LC_ALL, restoreLocale);
             restoreLocale = null;
         }
     }
